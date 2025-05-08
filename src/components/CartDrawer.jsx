@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import { closeCart, removeFromCart, updateQuantity } from '../store/cartSlice';
 import getIcon from '../utils/iconUtils';
 
@@ -10,6 +11,7 @@ function CartDrawer() {
   
   const XIcon = getIcon('X');
   const ShoppingBagIcon = getIcon('ShoppingBag');
+  const navigate = useNavigate();
   
   const handleClose = () => {
     dispatch(closeCart());
@@ -28,6 +30,12 @@ function CartDrawer() {
   
   const getCartTotal = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  const handleCheckout = () => {
+    dispatch(closeCart());
+    navigate('/checkout');
+    toast.info('Proceeding to checkout');
   };
   
   if (!showCart) return null;
@@ -68,17 +76,22 @@ function CartDrawer() {
               </div>
             ) : (
               <div className="space-y-4">
+                <h3 className="font-medium text-lg mb-4">Items in your cart ({cart.length})</h3>
                 {cart.map(item => (
-                  <div key={item.id} className="flex gap-4 pb-4 border-b dark:border-surface-700">
+                  <div key={item.id} className="flex gap-4 pb-4 border-b dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-700 p-2 rounded-lg transition-colors">
                     <img 
                       src={item.image} 
                       alt={item.name} 
                       className="w-20 h-20 object-cover rounded-lg"
                     />
                     <div className="flex-1">
-                      <h4 className="font-medium">{item.name}</h4>
-                      <p className="text-primary-dark dark:text-primary-light font-bold">
-                        ${item.price.toFixed(2)}
+                      <div className="flex justify-between items-center mt-1">
+                        <p className="text-primary-dark dark:text-primary-light font-bold">
+                          ${item.price.toFixed(2)}
+                        </p>
+                        <p className="text-surface-500 text-sm">Total: ${(item.price * item.quantity).toFixed(2)}</p>
+                      </div>
+                      
                       </p>
                       <div className="flex items-center mt-2">
                         <button 
@@ -112,12 +125,24 @@ function CartDrawer() {
           </div>
           
           {cart.length > 0 && (
-            <div className="p-4 border-t dark:border-surface-700">
-              <div className="flex justify-between mb-4">
+            <div className="p-4 border-t dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
+              <div className="flex justify-between mb-2">
                 <span className="font-medium">Subtotal</span>
                 <span className="font-bold">${getCartTotal().toFixed(2)}</span>
               </div>
-              <button className="btn-primary w-full py-3">Proceed to Checkout</button>
+              <div className="flex justify-between mb-2 text-sm text-surface-500">
+                <span>Shipping</span>
+                <span>Calculated at checkout</span>
+              </div>
+              <div className="flex justify-between mb-4 font-bold text-lg">
+                <span>Estimated Total</span>
+                <span>${getCartTotal().toFixed(2)}</span>
+              </div>
+              <button 
+                onClick={handleCheckout}
+                className="btn-primary w-full py-3 flex items-center justify-center space-x-2">
+                <span>Proceed to Checkout</span>
+              </button>
             </div>
           )}
         </div>

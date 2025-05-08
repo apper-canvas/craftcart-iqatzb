@@ -14,7 +14,7 @@ function CartButton() {
   return (
     <button 
       onClick={() => dispatch(openCart())}
-      className="fixed bottom-6 right-6 z-20 bg-primary hover:bg-primary-dark text-white rounded-full p-4 shadow-lg flex items-center justify-center"
+      className="fixed bottom-6 right-6 z-20 bg-primary hover:bg-primary-dark text-white rounded-full p-4 shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105"
       aria-label="Open cart"
     >
       <ShoppingCartIcon className="w-6 h-6" />

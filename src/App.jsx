@@ -4,6 +4,8 @@ import CartDrawer from './components/CartDrawer';
 import { Routes, Route } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import Products from './pages/Products';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderConfirmation from './pages/OrderConfirmation';
 import Story from './pages/Story';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -84,6 +86,8 @@ function App() {
       <CartButton />
       <CartDrawer />
       
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-confirmation" element={<OrderConfirmation />} />
     </div>
   );
 }
