@@ -64,6 +64,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/story" element={<Story />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-confirmation" element={<OrderConfirmation />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AnimatePresence>
@@ -86,9 +88,6 @@ function App() {
       <CartButton />
       <CartDrawer />
       
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/order-confirmation" element={<OrderConfirmation />} />
-    </div>
     </div>
   );
 }
