@@ -40,7 +40,6 @@ const registerUser = async (userData) => {
     verified: false,
     verificationToken,
     createdAt: new Date().toISOString()
-    createdAt: new Date().toISOString()
   };
 
 const verifyUserEmail = async (token) => {
