@@ -263,10 +263,106 @@ function CheckoutPage() {
         {currentStep === 0 && renderCartReview()}
         {currentStep === 1 && renderAccountStep()}
         {currentStep === 2 && (
-          <div>
+          <div className="space-y-6">
             <h2 className="text-xl font-bold mb-4">Shipping Information</h2>
-            {/* Shipping form fields would go here */}
-            <p className="text-surface-500">Shipping form would be implemented here</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium mb-1">First Name*</label>
+                <input
+                  type="text"
+                  id="firstName"
+                  value={checkoutData.shipping.firstName}
+                  onChange={(e) => handleInputChange('shipping', 'firstName', e.target.value)}
+                  className="input-field"
+                  placeholder="John"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium mb-1">Last Name*</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  value={checkoutData.shipping.lastName}
+                  onChange={(e) => handleInputChange('shipping', 'lastName', e.target.value)}
+                  className="input-field"
+                  placeholder="Doe"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label htmlFor="address" className="block text-sm font-medium mb-1">Address*</label>
+              <input
+                type="text"
+                id="address"
+                value={checkoutData.shipping.address}
+                onChange={(e) => handleInputChange('shipping', 'address', e.target.value)}
+                className="input-field"
+                placeholder="123 Main St, Apt 4B"
+                required
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label htmlFor="city" className="block text-sm font-medium mb-1">City*</label>
+                <input
+                  type="text"
+                  id="city"
+                  value={checkoutData.shipping.city}
+                  onChange={(e) => handleInputChange('shipping', 'city', e.target.value)}
+                  className="input-field"
+                  placeholder="New York"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="state" className="block text-sm font-medium mb-1">State/Province*</label>
+                <input
+                  type="text"
+                  id="state"
+                  value={checkoutData.shipping.state}
+                  onChange={(e) => handleInputChange('shipping', 'state', e.target.value)}
+                  className="input-field"
+                  placeholder="NY"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="postalCode" className="block text-sm font-medium mb-1">Postal Code*</label>
+                <input
+                  type="text"
+                  id="postalCode"
+                  value={checkoutData.shipping.postalCode}
+                  onChange={(e) => handleInputChange('shipping', 'postalCode', e.target.value)}
+                  className="input-field"
+                  placeholder="10001"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label htmlFor="country" className="block text-sm font-medium mb-1">Country*</label>
+              <select
+                id="country"
+                value={checkoutData.shipping.country}
+                onChange={(e) => handleInputChange('shipping', 'country', e.target.value)}
+                className="input-field"
+                required
+              >
+                <option value="United States">United States</option>
+                <option value="Canada">Canada</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Australia">Australia</option>
+                <option value="Germany">Germany</option>
+                <option value="France">France</option>
+                <option value="Japan">Japan</option>
+                <option value="China">China</option>
+              </select>
+            </div>
           </div>
         )}
         {currentStep === 3 && (
