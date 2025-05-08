@@ -8,10 +8,12 @@ import store from './store/store.js'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <Provider store={store}>
-      <App />
-      <ToastContainer position="top-right" autoClose={3000} />
-    </Provider>
-    <App />
-  </BrowserRouter>
+  <React.StrictMode>
+    <BrowserRouter>
+      <Provider store={store}>
+        <App />
+        <ToastContainer position="top-right" autoClose={3000} />
+      </Provider>
+    </BrowserRouter>
+  </React.StrictMode>
 )
