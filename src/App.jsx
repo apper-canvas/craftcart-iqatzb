@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
+import CartButton from './components/CartButton';
+import CartDrawer from './components/CartDrawer';
 import { Routes, Route } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
+import Products from './pages/Products';
+import Story from './pages/Story';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import getIcon from './utils/iconUtils';
+    <>
 import Home from './pages/Home';
 import Story from './pages/Story';
 import Products from './pages/Products';
@@ -12,6 +17,9 @@ import NotFound from './pages/NotFound';
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
+    <CartButton />
+    <CartDrawer />
+    </>
     return savedMode ? JSON.parse(savedMode) : 
       window.matchMedia('(prefers-color-scheme: dark)').matches;
   });

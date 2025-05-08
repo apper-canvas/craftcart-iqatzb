@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import getIcon from '../utils/iconUtils';
+import { addToCart } from '../store/cartSlice';
 import MainFeature from '../components/MainFeature';
 
 const Home = () => {
@@ -48,8 +50,6 @@ const Home = () => {
     }
   ]);
 
-  const [cart, setCart] = useState([]);
-  const [showCart, setShowCart] = useState(false);
 
   const ShoppingBagIcon = getIcon('ShoppingBag');
   const HeartIcon = getIcon('Heart');
@@ -60,47 +60,13 @@ const Home = () => {
   const ShoppingCartIcon = getIcon('ShoppingCart');
   const CheckCircleIcon = getIcon('CheckCircle');
 
-  const addToCart = (product) => {
-    const existingItem = cart.find(item => item.id === product.id);
-    
-    if (existingItem) {
-      setCart(cart.map(item => 
-        item.id === product.id 
-          ? { ...item, quantity: item.quantity + 1 } 
-          : item
-      ));
-    } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
-    }
+  const dispatch = useDispatch();
+
+  const handleAddToCart = (product) => {
+    dispatch(addToCart(product));
     
     toast.success(`Added ${product.name} to cart!`, {
       icon: () => <CheckCircleIcon className="text-secondary w-5 h-5" />
-    });
-  };
-
-  const removeFromCart = (productId) => {
-    setCart(cart.filter(item => item.id !== productId));
-    toast.info("Item removed from cart");
-  };
-  
-  const updateQuantity = (productId, newQuantity) => {
-    if (newQuantity < 1) return;
-    
-    setCart(cart.map(item => 
-      item.id === productId 
-        ? { ...item, quantity: newQuantity } 
-        : item
-    ));
-  };
-
-  const getTotalItems = () => {
-    return cart.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  const getCartTotal = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -221,7 +187,7 @@ const Home = () => {
                   </button>
                   <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <button 
-                      onClick={() => addToCart(product)}
+                      onClick={() => handleAddToCart(product)}
                       className="bg-primary hover:bg-primary-dark text-white rounded-full py-2 md:py-3 px-5 md:px-6 flex items-center gap-2 shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
                     >
                       <ShoppingBagIcon className="w-5 h-5" />
@@ -247,111 +213,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      {/* Floating Cart Button */}
-      <button 
-        onClick={() => setShowCart(true)}
-        className="fixed bottom-6 right-6 z-20 bg-primary hover:bg-primary-dark text-white rounded-full p-4 shadow-lg flex items-center justify-center"
-      >
-        <ShoppingCartIcon className="w-6 h-6" />
-        {getTotalItems() > 0 && (
-          <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-            {getTotalItems()}
-          </span>
-        )}
-      </button>
-
-      {/* Cart Drawer */}
-      {showCart && (
-        <div className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm">
-          <motion.div 
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'tween', duration: 0.3 }}
-            className="absolute top-0 right-0 h-full w-full sm:w-96 bg-white dark:bg-surface-800 shadow-lg"
-          >
-            <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between p-4 border-b dark:border-surface-700">
-                <h2 className="font-bold text-xl">Your Cart</h2>
-                <button 
-                  onClick={() => setShowCart(false)}
-                  className="p-2 rounded-full hover:bg-surface-100 dark:hover:bg-surface-700"
-                >
-                  <XIcon className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto p-4">
-                {cart.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center">
-                    <ShoppingBagIcon className="w-16 h-16 text-surface-400 mb-4" />
-                    <h3 className="font-medium text-lg mb-2">Your cart is empty</h3>
-                    <p className="text-surface-500 mb-6">Looks like you haven't added any items to your cart yet.</p>
-                    <button 
-                      onClick={() => setShowCart(false)}
-                      className="btn-primary"
-                    >
-                      Continue Shopping
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {cart.map(item => (
-                      <div key={item.id} className="flex gap-4 pb-4 border-b dark:border-surface-700">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-20 h-20 object-cover rounded-lg"
-                        />
-                        <div className="flex-1">
-                          <h4 className="font-medium">{item.name}</h4>
-                          <p className="text-primary-dark dark:text-primary-light font-bold">
-                            ${item.price.toFixed(2)}
-                          </p>
-                          <div className="flex items-center mt-2">
-                            <button 
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="w-8 h-8 flex items-center justify-center rounded bg-surface-100 dark:bg-surface-700"
-                            >
-                              -
-                            </button>
-                            <span className="w-8 text-center">{item.quantity}</span>
-                            <button 
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="w-8 h-8 flex items-center justify-center rounded bg-surface-100 dark:bg-surface-700"
-                            >
-                              +
-                            </button>
-                            <button 
-                              onClick={() => removeFromCart(item.id)}
-                              className="ml-auto text-surface-500 hover:text-red-500"
-                            >
-                              <XIcon className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              {cart.length > 0 && (
-                <div className="p-4 border-t dark:border-surface-700">
-                  <div className="flex justify-between mb-4">
-                    <span className="font-medium">Subtotal</span>
-                    <span className="font-bold">${getCartTotal().toFixed(2)}</span>
-                  </div>
-                  <button className="btn-primary w-full py-3">
-                    Proceed to Checkout
-                  </button>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 };

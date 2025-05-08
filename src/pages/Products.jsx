@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import getIcon from '../utils/iconUtils';
+import { addToCart } from '../store/cartSlice';
 
 function Products() {
   const [products, setProducts] = useState([
@@ -93,6 +95,7 @@ function Products() {
   const ShoppingBagIcon = getIcon('ShoppingBag');
   const StarIcon = getIcon('Star');
   const HeartIcon = getIcon('Heart');
+  const CheckCircleIcon = getIcon('CheckCircle');
   const ArrowLeftIcon = getIcon('ArrowLeft');
   
   // Categories with count
@@ -149,13 +152,19 @@ function Products() {
     
     setFilteredProducts(result);
   }, [products, activeCategory, sortOrder, searchQuery, priceRange]);
-  
-  const addToCart = (product) => {
-    toast.success(`Added ${product.name} to cart!`);
+
+  const dispatch = useDispatch();
+
+  const handleAddToCart = (product) => {
+    dispatch(addToCart(product));
+    toast.success(`Added ${product.name} to cart!`, {
+      icon: () => <CheckCircleIcon className="text-secondary w-5 h-5" />
+    });
   };
   
   const addToWishlist = (product) => {
     toast.info(`Added ${product.name} to wishlist!`);
+    // Wishlist functionality could be implemented here
   };
 
   return (
@@ -258,7 +267,7 @@ function Products() {
                     </button>
                     <div className="absolute inset-x-0 bottom-0 p-4 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <button 
-                        onClick={() => addToCart(product)}
+                        onClick={() => handleAddToCart(product)}
                         className="bg-primary hover:bg-primary-dark text-white rounded-full py-3 px-6 flex items-center gap-2 shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
                       >
                         <ShoppingBagIcon className="w-5 h-5" />
