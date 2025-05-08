@@ -8,18 +8,12 @@ import Story from './pages/Story';
 import 'react-toastify/dist/ReactToastify.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import getIcon from './utils/iconUtils';
-    <>
 import Home from './pages/Home';
-import Story from './pages/Story';
-import Products from './pages/Products';
 import NotFound from './pages/NotFound';
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
-    <CartButton />
-    <CartDrawer />
-    </>
     return savedMode ? JSON.parse(savedMode) : 
       window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
@@ -85,6 +79,9 @@ function App() {
         theme={darkMode ? "dark" : "light"}
         toastClassName="bg-surface-50 dark:bg-surface-800 shadow-soft"
         bodyClassName="text-surface-800 dark:text-surface-100"
+      
+      <CartButton />
+      <CartDrawer />
       />
     </div>
   );
