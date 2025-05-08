@@ -67,6 +67,7 @@ const Home = () => {
     
     toast.success(`Added ${product.name} to cart!`, {
       icon: () => <CheckCircleIcon className="text-secondary w-5 h-5" />
+    });
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
