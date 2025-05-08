@@ -704,9 +704,10 @@ function CheckoutPage() {
           </div>
         )}
         {currentStep === 4 && (
-            
+          <div className="space-y-6">
             <div className="space-y-6">
               <div className="border rounded-lg overflow-hidden dark:border-surface-700">
+                <div className="bg-surface-100 dark:bg-surface-700 px-4 py-2 font-medium">
                   Order Items
                 </div>
                 <div className="p-4 space-y-4">
@@ -724,6 +725,98 @@ function CheckoutPage() {
                       <div className="text-right">
                         <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border rounded-lg overflow-hidden dark:border-surface-700">
+                  <div className="bg-surface-100 dark:bg-surface-700 px-4 py-2 font-medium">
+                    Shipping Information
+                  </div>
+                  <div className="p-4">
+                    <p className="font-medium">{checkoutData.shipping.firstName} {checkoutData.shipping.lastName}</p>
+                    <p>{checkoutData.shipping.address}</p>
+                    <p>{checkoutData.shipping.city}, {checkoutData.shipping.state} {checkoutData.shipping.postalCode}</p>
+                    <p>{checkoutData.shipping.country}</p>
+                    <p className="mt-2">{checkoutData.customer.email}</p>
+                  </div>
+                </div>
+                
+                <div className="border rounded-lg overflow-hidden dark:border-surface-700">
+                  <div className="bg-surface-100 dark:bg-surface-700 px-4 py-2 font-medium">
+                    Payment Method
+                  </div>
+                  <div className="p-4">
+                    {checkoutData.payment.method === 'credit' ? (
+                      <div>
+                        <p className="font-medium">Credit Card</p>
+                        <p>Card ending in {checkoutData.payment.cardNumber.slice(-4)}</p>
+                        <p>Expires: {checkoutData.payment.expiry}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="font-medium">PayPal</p>
+                        <p>{checkoutData.customer.email}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border rounded-lg overflow-hidden dark:border-surface-700">
+                <div className="bg-surface-100 dark:bg-surface-700 px-4 py-2 font-medium">
+                  Order Summary
+                </div>
+                <div className="p-4">
+                  <div className="flex justify-between mb-2">
+                    <span>Subtotal</span>
+                    <span>${getCartTotal().toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between mb-2">
+                    <span>Shipping</span>
+                    <span>$0.00</span>
+                  </div>
+                  <div className="flex justify-between mb-2">
+                    <span>Tax (10%)</span>
+                    <span>${(getCartTotal() * 0.1).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg pt-2 border-t dark:border-surface-700">
+                    <span>Total</span>
+                    <span>${(getCartTotal() * 1.1).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {isProcessing && (
+              <div className="mt-6 p-4 bg-primary bg-opacity-10 rounded-lg text-center">
+                <div className="animate-pulse flex justify-center items-center">
+                  <LockIcon className="w-5 h-5 mr-2 text-primary" />
+                  <span>Processing your payment...</span>
+                </div>
+              </div>
+            )}
+            {paymentComplete && !isProcessing && (
+              <div className="mt-6 p-4 bg-green-100 dark:bg-green-900 dark:bg-opacity-20 rounded-lg text-center">
+                <div className="flex justify-center items-center text-green-600 dark:text-green-400">
+                  <CheckIcon className="w-5 h-5 mr-2" />
+                  <span>Payment completed successfully!</span>
+                </div>
+                <p className="text-sm mt-2 text-surface-600 dark:text-surface-400">Your order will be processed shortly.</p>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {renderStepButtons()}
+      </div>
+    </div>
+  );
+}
+
+export default CheckoutPage;
                     </div>
                   ))}
                 </div>
