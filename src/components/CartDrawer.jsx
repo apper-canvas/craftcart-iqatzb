@@ -92,7 +92,6 @@ function CartDrawer() {
                         <p className="text-surface-500 text-sm">Total: ${(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                       
-                      </p>
                       <div className="flex items-center mt-2">
                         <button 
                           onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
