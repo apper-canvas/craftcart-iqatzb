@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import getIcon from './utils/iconUtils';
 import Home from './pages/Home';
 import Story from './pages/Story';
+import Products from './pages/Products';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -58,6 +59,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/story" element={<Story />} />
+          <Route path="/products" element={<Products />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AnimatePresence>

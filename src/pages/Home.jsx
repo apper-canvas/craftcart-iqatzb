@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import getIcon from '../utils/iconUtils';
 import MainFeature from '../components/MainFeature';
@@ -122,12 +123,12 @@ const Home = () => {
                 craftsmanship to your home.
               </p>
               <div className="flex flex-wrap gap-4">
-                <button className="btn-primary py-3 px-8 rounded-full shadow-md hover:shadow-lg">
+                <Link to="/products" className="btn-primary py-3 px-8 rounded-full shadow-md hover:shadow-lg">
                   Shop Now
-                </button>
-                <button className="btn-outline py-3 px-8 rounded-full">
+                </Link>
+                <Link to="/story" className="btn-outline py-3 px-8 rounded-full">
                   Our Story
-                </button>
+                </Link>
               </div>
             </motion.div>
             <motion.div 
