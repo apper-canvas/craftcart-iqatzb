@@ -143,6 +143,14 @@ function CartDrawer() {
                 className="btn-primary w-full py-3 flex items-center justify-center space-x-2">
                 <span>Proceed to Checkout</span>
               </button>
+              <button 
+                onClick={() => {
+                  dispatch(closeCart());
+                  navigate('/cart');
+                }}
+                className="btn-outline w-full py-3 mt-2 flex items-center justify-center space-x-2">
+                <span>View Cart</span>
+              </button>
             </div>
           )}
         </div>

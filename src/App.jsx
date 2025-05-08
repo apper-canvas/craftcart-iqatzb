@@ -89,6 +89,7 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
     </div>
+    </div>
   );
 }
 
