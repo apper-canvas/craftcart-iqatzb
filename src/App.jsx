@@ -79,10 +79,11 @@ function App() {
         theme={darkMode ? "dark" : "light"}
         toastClassName="bg-surface-50 dark:bg-surface-800 shadow-soft"
         bodyClassName="text-surface-800 dark:text-surface-100"
+      />
       
       <CartButton />
       <CartDrawer />
-      />
+      
     </div>
   );
 }
