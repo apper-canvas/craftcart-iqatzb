@@ -364,7 +364,17 @@ function CheckoutPage() {
           className="btn-primary flex items-center gap-2"
         >
           Place Order
-          <CheckIcon className="w-4 h-4" />
+          {isProcessing ? (
+            <span>Processing...</span>
+          ) : paymentComplete ? (
+            <span>Complete Order</span>
+          ) : (
+            <span>Process Payment & Place Order</span>
+          )}
+        </button>
+      ) : cart.length === 0 ? (
+        <button onClick={() => navigate('/')} className="btn-primary">
+          Start Shopping
         </button>
       ) : null}
     </div>
@@ -697,7 +707,6 @@ function CheckoutPage() {
             
             <div className="space-y-6">
               <div className="border rounded-lg overflow-hidden dark:border-surface-700">
-                <div className="bg-surface-100 dark:bg-surface-700 px-4 py-2 font-medium">
                   Order Items
                 </div>
                 <div className="p-4 space-y-4">
@@ -788,8 +797,6 @@ function CheckoutPage() {
                 </div>
               </div>
             )}
-            <p className="mb-4">Please review your order details before finalizing.</p>
-            {/* Order summary and final review would go here */}
             <p className="text-surface-500">Order summary and final confirmation would be displayed here</p>
           </div>
         )}
@@ -801,17 +808,3 @@ function CheckoutPage() {
 }
 
 export default CheckoutPage;
-          onClick={handleSubmitOrder} 
-          className={`btn-primary flex items-center gap-2 ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
-          disabled={isProcessing}
-          {isProcessing ? (
-            <span>Processing...</span>
-          ) : paymentComplete ? (
-            <span>Complete Order</span>
-          ) : (
-            <span>Process Payment & Place Order</span>
-          )}
-            } ${index < steps.length - 1 ? 'flex-shrink-0' : ''}`}
-            <div
-              aria-label={`Step ${index + 1}: ${step.name}`}
-              role="button"
