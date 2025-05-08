@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { generateVerificationToken } from '../utils/authUtils';
+import { generateVerificationToken } from '../../utils/authUtils';
 
 // Simulated API calls - in a real app, these would call your backend
 const loginUser = async (credentials) => {
