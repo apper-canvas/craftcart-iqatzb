@@ -1,19 +1,15 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { Provider } from 'react-redux'
-import { ToastContainer } from 'react-toastify'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App.jsx'
-import store from './store/store.js'
-import './index.css'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { store } from './app/store';
+import App from './App';
+import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  <Provider store={store}>
     <BrowserRouter>
-      <Provider store={store}>
-        <App />
-        <ToastContainer position="top-right" autoClose={3000} />
-      </Provider>
+      <App />
     </BrowserRouter>
-  </React.StrictMode>
-)
+  </Provider>
+);
