@@ -41,6 +41,7 @@ const registerUser = async (userData) => {
     verificationToken,
     createdAt: new Date().toISOString()
   };
+};
 
 const verifyUserEmail = async (token) => {
   // Simulate API delay
