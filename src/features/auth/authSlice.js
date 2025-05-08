@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { generateVerificationToken } from '../utils/authUtils';
 
 // Simulated API calls - in a real app, these would call your backend
 const loginUser = async (credentials) => {
@@ -22,12 +23,39 @@ const registerUser = async (userData) => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 1000));
   
+  // Simulate checking if email already exists
+  if (userData.email === 'user@example.com') {
+    throw new Error('Email already in use');
+  }
+  
+  // Create verification token (in a real app, this would be a unique token)
+  const verificationToken = generateVerificationToken();
+  
   // In a real app, this would create a new user in your database
-  return { 
+  // and send a verification email
+    id: Math.random().toString(36).substring(2, 9),
     id: Math.random().toString(36).substr(2, 9),
     name: userData.name,
-    email: userData.email,
+    token: 'mock-jwt-token-new-user',
+    verified: false,
+    verificationToken,
+    createdAt: new Date().toISOString()
     token: 'mock-jwt-token-new-user'
+};
+
+const verifyUserEmail = async (token) => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Get stored user
+  const storedUser = JSON.parse(localStorage.getItem('user'));
+  
+  // In a real app, this would verify the token against the database
+  if (storedUser && storedUser.verificationToken === token) {
+    return { ...storedUser, verified: true };
+  }
+  
+  throw new Error('Invalid verification token');
   };
 };
 
@@ -58,9 +86,29 @@ export const register = createAsyncThunk(
   }
 );
 
+export const verifyEmail = createAsyncThunk(
+  'auth/verifyEmail',
+  async (token, { rejectWithValue }) => {
+    try {
+      const verifiedUser = await verifyUserEmail(token);
+      
+      // Update stored user info
+      localStorage.setItem('user', JSON.stringify(verifiedUser));
+      
+      return verifiedUser;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const initialState = {
   user: JSON.parse(localStorage.getItem('user')) || null,
   status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
+  registrationStatus: 'idle', // separate status for registration
+  verificationStatus: 'idle', // status for email verification
+  registrationData: null, // store registration data temporarily
+  verificationSent: false, // track if verification email was sent
   error: null
 };
 
@@ -71,7 +119,11 @@ const authSlice = createSlice({
     logout: (state) => {
       localStorage.removeItem('user');
       state.user = null;
-    }
+      state.status = 'idle';
+      state.error = null;
+      state.registrationStatus = 'idle';
+      state.verificationStatus = 'idle';
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -87,14 +139,35 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(register.pending, (state) => {
-        state.status = 'loading';
+        state.registrationStatus = 'loading';
+        state.error = null;
       })
       .addCase(register.fulfilled, (state, action) => {
-        state.status = 'succeeded';
+        state.registrationStatus = 'succeeded';
+        state.verificationSent = true;
         state.user = action.payload;
+        state.registrationData = action.payload;
+        state.error = null;
       })
       .addCase(register.rejected, (state, action) => {
-        state.status = 'failed';
+        state.registrationStatus = 'failed';
+        state.error = action.payload;
+      })
+      .addCase(verifyEmail.pending, (state) => {
+        state.verificationStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(verifyEmail.fulfilled, (state, action) => {
+        state.verificationStatus = 'succeeded';
+        state.user = action.payload;
+        state.error = null;
+        // Update the stored user with verification status
+        if (state.user) {
+          state.user.verified = true;
+        }
+      })
+      .addCase(verifyEmail.rejected, (state, action) => {
+        state.verificationStatus = 'failed';
         state.error = action.payload;
       });
   }
