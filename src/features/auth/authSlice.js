@@ -33,14 +33,13 @@ const registerUser = async (userData) => {
   
   // In a real app, this would create a new user in your database
   // and send a verification email
-    id: Math.random().toString(36).substring(2, 9),
+  return {
     id: Math.random().toString(36).substr(2, 9),
     name: userData.name,
-    token: 'mock-jwt-token-new-user',
+    email: userData.email,
     verified: false,
     verificationToken,
     createdAt: new Date().toISOString()
-    token: 'mock-jwt-token-new-user'
 };
 
 const verifyUserEmail = async (token) => {
@@ -56,7 +55,6 @@ const verifyUserEmail = async (token) => {
   }
   
   throw new Error('Invalid verification token');
-  };
 };
 
 // Async thunks
