@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { clearCart } from '../store/cartSlice';
 import getIcon from '../utils/iconUtils';
@@ -11,6 +11,7 @@ function CheckoutPage() {
     customer: {
       email: '',
       isGuest: true,
+      password: '',
     },
     shipping: {
       firstName: '',
@@ -23,13 +24,20 @@ function CheckoutPage() {
     },
     payment: {
       cardNumber: '',
+      method: 'credit',
       nameOnCard: '',
       expiry: '',
       cvv: '',
+      savePaymentInfo: false
     }
   });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentComplete, setPaymentComplete] = useState(false);
+  const [cardNumberError, setCardNumberError] = useState('');
+  const [cvvError, setCvvError] = useState('');
+  const [expiryError, setExpiryError] = useState('');
   
-  const cart = useSelector(state => state.cart.items);
+  const cart = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -40,6 +48,9 @@ function CheckoutPage() {
   const TruckIcon = getIcon('Truck');
   const CreditCardIcon = getIcon('CreditCard');
   const ShoppingBagIcon = getIcon('ShoppingBag');
+  const LockIcon = getIcon('Lock');
+  const AlertCircleIcon = getIcon('AlertCircle');
+  const CreditCard = getIcon('CreditCard');
 
   const steps = [
     { name: 'Cart Review', icon: ShoppingBagIcon },
@@ -48,6 +59,10 @@ function CheckoutPage() {
     { name: 'Payment', icon: CreditCardIcon },
     { name: 'Review', icon: CheckIcon }
   ];
+
+  const formatCardNumber = (value) => {
+    return value.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
+  };
 
   const getCartTotal = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -63,9 +78,74 @@ function CheckoutPage() {
     });
   };
 
+  const validateCardNumber = (number) => {
+    const cardNumber = number.replace(/\s/g, '');
+    const regex = /^[0-9]{16}$/;
+    
+    if (!regex.test(cardNumber)) {
+      setCardNumberError('Please enter a valid 16-digit card number');
+      return false;
+    }
+    
+    setCardNumberError('');
+    return true;
+  };
+
+  const validateCVV = (cvv) => {
+    const regex = /^[0-9]{3,4}$/;
+    
+    if (!regex.test(cvv)) {
+      setCvvError('CVV must be 3 or 4 digits');
+      return false;
+    }
+    
+    setCvvError('');
+    return true;
+  };
+
+  const validateExpiry = (expiry) => {
+    const regex = /^(0[1-9]|1[0-2])\/([0-9]{2})$/;
+    
+    if (!regex.test(expiry)) {
+      setExpiryError('Use MM/YY format');
+      return false;
+    }
+    
+    const [month, year] = expiry.split('/');
+    const expiryDate = new Date(2000 + parseInt(year), parseInt(month) - 1);
+    const today = new Date();
+    
+    if (expiryDate < today) {
+      setExpiryError('Card has expired');
+      return false;
+    }
+    
+    setExpiryError('');
+    return true;
+  };
+
+  const handleCardNumberChange = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 16) value = value.slice(0, 16);
+    handleInputChange('payment', 'cardNumber', formatCardNumber(value));
+  };
+
+  const handleExpiryChange = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    
+    if (value.length > 2) {
+      value = `${value.slice(0, 2)}/${value.slice(2, 4)}`;
+    }
+    
+    handleInputChange('payment', 'expiry', value);
+  };
+
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      // Validate payment information if moving from payment step
+      if (currentStep === 3 && !validatePaymentInfo()) return;
+      
+      setCurrentStep((prev) => prev + 1);
       window.scrollTo(0, 0);
     }
   };
@@ -77,11 +157,41 @@ function CheckoutPage() {
     }
   };
 
+  const validatePaymentInfo = () => {
+    if (checkoutData.payment.method === 'credit') {
+      const isCardValid = validateCardNumber(checkoutData.payment.cardNumber);
+      const isCvvValid = validateCVV(checkoutData.payment.cvv);
+      const isExpiryValid = validateExpiry(checkoutData.payment.expiry);
+      
+      return isCardValid && isCvvValid && isExpiryValid && checkoutData.payment.nameOnCard;
+    }
+    
+    return true; // For PayPal or other methods
+  };
+
+  const simulatePaymentProcessing = () => {
+    setIsProcessing(true);
+    
+    // Simulate payment processing with a delay
+    setTimeout(() => {
+      setIsProcessing(false);
+      setPaymentComplete(true);
+      toast.success('Payment processed successfully!');
+      handleSubmitOrder();
+    }, 2000);
+  };
+
   const handleSubmitOrder = () => {
-    // Here you would typically send the order to your backend
-    toast.success('Your order has been placed successfully!');
-    dispatch(clearCart());
-    navigate('/order-confirmation');
+    if (currentStep === 4) {
+      if (!paymentComplete) {
+        simulatePaymentProcessing();
+      } else {
+        // If payment is already complete, finalize order
+        toast.success('Your order has been placed successfully!');
+        dispatch(clearCart());
+        navigate('/order-confirmation');
+      }
+    }
   };
 
   // Render cart review step
@@ -181,7 +291,46 @@ function CheckoutPage() {
         
         {!checkoutData.customer.isGuest && (
           <div className="border p-4 rounded-lg dark:border-surface-700">
-            <p className="mb-4">Login or create an account functionality would go here</p>
+            <h3 className="text-lg font-medium mb-4">Login or Create an Account</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  value={checkoutData.customer.password}
+                  onChange={(e) => handleInputChange('customer', 'password', e.target.value)}
+                  className="input-field"
+                  placeholder="••••••••"
+                />
+              </div>
+              
+              <div className="flex gap-4">
+                <button 
+                  type="button" 
+                  className="btn-primary flex-1"
+                  onClick={() => {
+                    if (checkoutData.customer.email && checkoutData.customer.password) {
+                      toast.success('Successfully logged in!');
+                    } else {
+                      toast.error('Please enter both email and password');
+                    }
+                  }}
+                >
+                  Login
+                </button>
+                <button 
+                  type="button" 
+                  className="btn-outline flex-1"
+                  onClick={() => {
+                    toast.info('Account creation would happen here');
+                  }}
+                >
+                  Create Account
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -366,15 +515,279 @@ function CheckoutPage() {
           </div>
         )}
         {currentStep === 3 && (
-          <div>
+          <div className="space-y-6">
             <h2 className="text-xl font-bold mb-4">Payment Information</h2>
-            {/* Payment form fields would go here */}
-            <p className="text-surface-500">Payment form would be implemented here</p>
+            
+            <div className="flex justify-between items-center p-4 bg-surface-50 dark:bg-surface-800 rounded-lg">
+              <div className="flex items-center">
+                <LockIcon className="w-5 h-5 text-secondary mr-2" />
+                <span className="text-sm">Secure Payment Processing</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-xs px-2 py-1 bg-surface-200 dark:bg-surface-700 rounded">SSL</span>
+                <span className="text-xs px-2 py-1 bg-surface-200 dark:bg-surface-700 rounded">PCI DSS</span>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div 
+                  className={`p-4 border rounded-lg cursor-pointer ${
+                    checkoutData.payment.method === 'credit' 
+                      ? 'border-primary bg-primary bg-opacity-5' 
+                      : 'dark:border-surface-700'
+                  }`}
+                  onClick={() => handleInputChange('payment', 'method', 'credit')}
+                >
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      id="creditCard" 
+                      checked={checkoutData.payment.method === 'credit'} 
+                      onChange={() => {}} 
+                      className="h-4 w-4 text-primary"
+                    />
+                    <label htmlFor="creditCard" className="font-medium">Credit Card</label>
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <img src="https://cdn.pixabay.com/photo/2015/05/26/09/37/paypal-784404_1280.png" alt="Visa" className="h-6" />
+                    <img src="https://cdn.pixabay.com/photo/2015/05/26/09/37/paypal-784404_1280.png" alt="Mastercard" className="h-6" />
+                    <img src="https://cdn.pixabay.com/photo/2015/05/26/09/37/paypal-784404_1280.png" alt="Amex" className="h-6" />
+                  </div>
+                </div>
+                <div 
+                  className={`p-4 border rounded-lg cursor-pointer ${
+                    checkoutData.payment.method === 'paypal' 
+                      ? 'border-primary bg-primary bg-opacity-5' 
+                      : 'dark:border-surface-700'
+                  }`}
+                  onClick={() => handleInputChange('payment', 'method', 'paypal')}
+                >
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      id="paypal" 
+                      checked={checkoutData.payment.method === 'paypal'} 
+                      onChange={() => {}} 
+                      className="h-4 w-4 text-primary"
+                    />
+                    <label htmlFor="paypal" className="font-medium">PayPal</label>
+                  </div>
+                  <img src="https://cdn.pixabay.com/photo/2015/05/26/09/37/paypal-784404_1280.png" alt="PayPal" className="h-8 mt-2" />
+                </div>
+              </div>
+              
+              {checkoutData.payment.method === 'credit' && (
+                <div className="space-y-4 p-4 border rounded-lg dark:border-surface-700">
+                  <div>
+                    <label htmlFor="cardNumber" className="block text-sm font-medium mb-1">Card Number*</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="cardNumber"
+                        value={checkoutData.payment.cardNumber}
+                        onChange={handleCardNumberChange}
+                        onBlur={() => validateCardNumber(checkoutData.payment.cardNumber)}
+                        className={`input-field pl-10 ${cardNumberError ? 'border-red-500' : ''}`}
+                        placeholder="1234 5678 9012 3456"
+                        required
+                      />
+                      <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-400" />
+                    </div>
+                    {cardNumberError && <p className="text-red-500 text-xs mt-1 flex items-center"><AlertCircleIcon className="w-3 h-3 mr-1" />{cardNumberError}</p>}
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="nameOnCard" className="block text-sm font-medium mb-1">Name on Card*</label>
+                    <input
+                      type="text"
+                      id="nameOnCard"
+                      value={checkoutData.payment.nameOnCard}
+                      onChange={(e) => handleInputChange('payment', 'nameOnCard', e.target.value)}
+                      className="input-field"
+                      placeholder="John Doe"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="expiry" className="block text-sm font-medium mb-1">Expiry Date (MM/YY)*</label>
+                      <input
+                        type="text"
+                        id="expiry"
+                        value={checkoutData.payment.expiry}
+                        onChange={handleExpiryChange}
+                        onBlur={() => validateExpiry(checkoutData.payment.expiry)}
+                        className={`input-field ${expiryError ? 'border-red-500' : ''}`}
+                        placeholder="MM/YY"
+                        maxLength="5"
+                        required
+                      />
+                      {expiryError && <p className="text-red-500 text-xs mt-1 flex items-center"><AlertCircleIcon className="w-3 h-3 mr-1" />{expiryError}</p>}
+                    </div>
+                    <div>
+                      <label htmlFor="cvv" className="block text-sm font-medium mb-1">CVV*</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          id="cvv"
+                          value={checkoutData.payment.cvv}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            if (value.length <= 4) {
+                              handleInputChange('payment', 'cvv', value);
+                            }
+                          }}
+                          onBlur={() => validateCVV(checkoutData.payment.cvv)}
+                          className={`input-field ${cvvError ? 'border-red-500' : ''}`}
+                          placeholder="123"
+                          maxLength="4"
+                          required
+                        />
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-surface-400 cursor-help" title="3 or 4 digit security code on the back of your card">?</span>
+                      </div>
+                      {cvvError && <p className="text-red-500 text-xs mt-1 flex items-center"><AlertCircleIcon className="w-3 h-3 mr-1" />{cvvError}</p>}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 mt-2">
+                    <input
+                      type="checkbox"
+                      id="savePaymentInfo"
+                      checked={checkoutData.payment.savePaymentInfo}
+                      onChange={(e) => handleInputChange('payment', 'savePaymentInfo', e.target.checked)}
+                      className="h-4 w-4 text-primary"
+                    />
+                    <label htmlFor="savePaymentInfo" className="text-sm">Save my payment information for future purchases</label>
+                  </div>
+                </div>
+              )}
+              
+              {checkoutData.payment.method === 'paypal' && (
+                <div className="p-6 border rounded-lg text-center dark:border-surface-700">
+                  <p className="mb-4">You'll be redirected to PayPal to complete your payment.</p>
+                  <button
+                    type="button"
+                    className="btn-primary w-full max-w-xs mx-auto"
+                    onClick={() => {
+                      toast.info('Redirecting to PayPal...');
+                      setTimeout(() => {
+                        setPaymentComplete(true);
+                        nextStep();
+                        toast.success('PayPal payment completed successfully!');
+                      }, 1500);
+                    }}
+                  >
+                    Continue to PayPal
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 p-4 bg-surface-50 dark:bg-surface-800 rounded-lg">
+              <div className="flex justify-between mb-2">
+                <span>Total Payment</span>
+                <span className="font-bold">${(getCartTotal() * 1.1).toFixed(2)}</span>
+              </div>
+            </div>
           </div>
         )}
         {currentStep === 4 && (
-          <div>
-            <h2 className="text-xl font-bold mb-4">Review Your Order</h2>
+            
+            <div className="space-y-6">
+              <div className="border rounded-lg overflow-hidden dark:border-surface-700">
+                <div className="bg-surface-100 dark:bg-surface-700 px-4 py-2 font-medium">
+                  Order Items
+                </div>
+                <div className="p-4 space-y-4">
+                  {cart.map(item => (
+                    <div key={item.id} className="flex gap-3">
+                      <img 
+                        src={item.image} 
+                        alt={item.name} 
+                        className="w-16 h-16 object-cover rounded-md"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-surface-500 text-sm">Qty: {item.quantity}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border rounded-lg overflow-hidden dark:border-surface-700">
+                  <div className="bg-surface-100 dark:bg-surface-700 px-4 py-2 font-medium">
+                    Shipping Information
+                  </div>
+                  <div className="p-4">
+                    <p className="font-medium">{checkoutData.shipping.firstName} {checkoutData.shipping.lastName}</p>
+                    <p>{checkoutData.shipping.address}</p>
+                    <p>{checkoutData.shipping.city}, {checkoutData.shipping.state} {checkoutData.shipping.postalCode}</p>
+                    <p>{checkoutData.shipping.country}</p>
+                    <p className="mt-2">{checkoutData.customer.email}</p>
+                  </div>
+                </div>
+                
+                <div className="border rounded-lg overflow-hidden dark:border-surface-700">
+                  <div className="bg-surface-100 dark:bg-surface-700 px-4 py-2 font-medium">
+                    Payment Method
+                  </div>
+                  <div className="p-4">
+                    {checkoutData.payment.method === 'credit' ? (
+                      <div>
+                        <p className="font-medium">Credit Card</p>
+                        <p>Card ending in {checkoutData.payment.cardNumber.slice(-4)}</p>
+                        <p>Expires: {checkoutData.payment.expiry}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="font-medium">PayPal</p>
+                        <p>{checkoutData.customer.email}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border rounded-lg overflow-hidden dark:border-surface-700">
+                <div className="bg-surface-100 dark:bg-surface-700 px-4 py-2 font-medium">
+                  Order Summary
+                </div>
+                <div className="p-4">
+                  <div className="flex justify-between mb-2">
+                    <span>Subtotal</span>
+                    <span>${getCartTotal().toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between mb-2">
+                    <span>Shipping</span>
+                    <span>$0.00</span>
+                  </div>
+                  <div className="flex justify-between mb-2">
+                    <span>Tax (10%)</span>
+                    <span>${(getCartTotal() * 0.1).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg pt-2 border-t dark:border-surface-700">
+                    <span>Total</span>
+                    <span>${(getCartTotal() * 1.1).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {isProcessing && (
+              <div className="mt-6 p-4 bg-primary bg-opacity-10 rounded-lg text-center">
+                <div className="animate-pulse flex justify-center items-center">
+                  <LockIcon className="w-5 h-5 mr-2 text-primary" />
+                  <span>Processing your payment...</span>
+                </div>
+              </div>
+            )}
             <p className="mb-4">Please review your order details before finalizing.</p>
             {/* Order summary and final review would go here */}
             <p className="text-surface-500">Order summary and final confirmation would be displayed here</p>
@@ -388,3 +801,17 @@ function CheckoutPage() {
 }
 
 export default CheckoutPage;
+          onClick={handleSubmitOrder} 
+          className={`btn-primary flex items-center gap-2 ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={isProcessing}
+          {isProcessing ? (
+            <span>Processing...</span>
+          ) : paymentComplete ? (
+            <span>Complete Order</span>
+          ) : (
+            <span>Process Payment & Place Order</span>
+          )}
+            } ${index < steps.length - 1 ? 'flex-shrink-0' : ''}`}
+            <div
+              aria-label={`Step ${index + 1}: ${step.name}`}
+              role="button"
