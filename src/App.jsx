@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import getIcon from './utils/iconUtils';
 import Home from './pages/Home';
+import Story from './pages/Story';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -56,6 +57,7 @@ function App() {
       <AnimatePresence mode="wait">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/story" element={<Story />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AnimatePresence>
